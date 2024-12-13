@@ -1,0 +1,57 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Main",
+            "request": "launch",
+            "mainClass": "TelaLogin",
+            "classPaths": [
+                "bin",
+                "lib/jbcrypt-0.4.jar"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Launch Java",
+            "request": "launch",
+            "mainClass": "src.TelaLogin",
+            "projectName": "Multibanco",
+            "args": "",
+            "classPaths": [
+                "${workspaceFolder}/lib/mysql-connector-java-8.x.x.jar",
+                "${workspaceFolder}/bin"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "TelaCaixaEletronico",
+            "request": "launch",
+            "mainClass": "TelaCaixaEletronico",
+            "projectName": "Multibanco_a308ef77"
+        },
+        {
+            "type": "java",
+            "name": "TelaInicial",
+            "request": "launch",
+            "mainClass": "TelaInicial",
+            "projectName": "Multibanco_a308ef77"
+        },
+        {
+            "type": "java",
+            "name": "TelaLogin",
+            "request": "launch",
+            "mainClass": "TelaLogin",
+            "projectName": "Multibanco_a308ef77"
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.project.referencedLibraries": [
+        "lib/jbcrypt-0.4.jar",
+        "lib/mysql-connector-j-9.1.0.jar"
+    ]
+}
