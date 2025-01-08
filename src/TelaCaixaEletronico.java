@@ -1,74 +1,39 @@
 package src;
-// Importação das bibliotecas necessárias do Swing para interface gráfica
 
 import java.awt.*;
 import javax.swing.*;
 
 /**
- * Classe principal que implementa a interface gráfica do caixa eletrônico Herda
- * de JFrame para criar uma janela principal
+ * Classe principal que implementa a interface gráfica do caixa eletrônico
+ * Herda de JFrame para criar uma janela principal
  */
 public class TelaCaixaEletronico extends JFrame {
 
-    // Atributos privados para gerenciar a conta e componentes da interface
-    private ContaBancaria conta;  // Referência à conta bancária do usuário
-    private JTextField txtSaldo;  // Campo para exibir o saldo
-    private JTextField txtValor;  // Campo para inserir valores de transação
-    private JLabel lblMensagem;   // Label para mensagens de feedback
-    private JPanel painelMensagem;  // Painel para exibir mensagens
+    private ContaBancaria conta;
+    private JTextField txtSaldo;
+    private JTextField txtValor;
+    private JLabel lblMensagem;
+    private JPanel painelMensagem;
 
-    // Construtor que recebe uma conta bancária e configura a interface
     public TelaCaixaEletronico(ContaBancaria conta) {
-        // Armazena a conta bancária recebida
         this.conta = conta;
 
         // Configurações básicas da janela
-        setTitle("Multibanco - ISTEC");  // Título da janela
-        setSize(600, 600);  // Tamanho da janela
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Comportamento ao fechar
-        setLayout(new BorderLayout(5, 5));  // Layout principal
-        setLocationRelativeTo(null);  // Centraliza a janela
+        setTitle("Multibanco - ISTEC");
+        setUndecorated(true); // Remove a barra de título
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Tela cheia
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
 
-        // Painel com informações do cliente em grid layout
-        JPanel painelCliente = new JPanel(new GridLayout(3, 2, 5, 5));
-        painelCliente.setBorder(BorderFactory.createTitledBorder("Informações do Cliente"));
-        // Adiciona labels com informações da conta
-        painelCliente.add(new JLabel("Número da Conta:"));
-        painelCliente.add(new JLabel(String.valueOf(conta.getNumeroConta())));
-        painelCliente.add(new JLabel("Titular:"));
-        painelCliente.add(new JLabel(conta.getTitular()));
-        painelCliente.add(new JLabel("Saldo Atual:"));
+        // Painel com informações do cliente
+        JPanel painelCliente = criarPainelCliente();
+        JPanel painelOperacoes = criarPainelOperacoes();
 
-        // Configuração do campo de saldo (somente leitura)
-        txtSaldo = new JTextField();
-        txtSaldo.setEditable(false);
-        txtSaldo.setHorizontalAlignment(JTextField.RIGHT);
-        painelCliente.add(txtSaldo);
-
-        // Painel de operações
-        JPanel painelOperacoes = new JPanel(new BorderLayout(5, 5));
-        painelOperacoes.setBorder(BorderFactory.createTitledBorder("Operações"));
-
-        // Subpainel para entrada de valor
-        JPanel painelValor = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        painelValor.add(new JLabel("Valor:"));
-        txtValor = new JTextField(10);
-        painelValor.add(txtValor);
-        painelOperacoes.add(painelValor, BorderLayout.NORTH);
-
-        // Botões para operações (Sacar, Depositar, Saldo)
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton btnSacar = new JButton("Sacar");
-        JButton btnDepositar = new JButton("Depositar");
-        JButton btnSaldo = new JButton("Consultar Saldo");
-        painelBotoes.add(btnSacar);
-        painelBotoes.add(btnDepositar);
-        painelBotoes.add(btnSaldo);
-        painelOperacoes.add(painelBotoes, BorderLayout.CENTER);
-
-        // Configura o painel de mensagens de feedback
+        // Painel de mensagens
         painelMensagem = new JPanel();
         lblMensagem = new JLabel(" ");
+        lblMensagem.setFont(new Font("Arial", Font.BOLD, 14));
         painelMensagem.add(lblMensagem);
 
         // Adiciona os painéis à janela principal
@@ -76,26 +41,82 @@ public class TelaCaixaEletronico extends JFrame {
         add(painelOperacoes, BorderLayout.CENTER);
         add(painelMensagem, BorderLayout.SOUTH);
 
-        // Exibe o saldo atual da conta
         atualizarSaldo();
 
-        // Configurações de ação para os botões
+        setVisible(true);
+    }
+
+    private JPanel criarPainelCliente() {
+        JPanel painelCliente = new JPanel(new GridLayout(3, 2, 10, 10));
+        painelCliente.setBorder(BorderFactory.createTitledBorder("Informações do Cliente"));
+        painelCliente.setBackground(new Color(245, 245, 245));
+        painelCliente.setOpaque(true);
+
+        painelCliente.add(new JLabel("Número da Conta:"));
+        painelCliente.add(new JLabel(String.valueOf(conta.getNumeroConta())));
+        painelCliente.add(new JLabel("Titular:"));
+        painelCliente.add(new JLabel(conta.getTitular()));
+        painelCliente.add(new JLabel("Saldo Atual:"));
+
+        txtSaldo = new JTextField();
+        txtSaldo.setEditable(false);
+        txtSaldo.setHorizontalAlignment(JTextField.RIGHT);
+        painelCliente.add(txtSaldo);
+
+        return painelCliente;
+    }
+
+    private JPanel criarPainelOperacoes() {
+        JPanel painelOperacoes = new JPanel(new BorderLayout(10, 10));
+        painelOperacoes.setBorder(BorderFactory.createTitledBorder("Operações"));
+        painelOperacoes.setBackground(Color.WHITE);
+
+        JPanel painelValor = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        painelValor.setBackground(Color.WHITE);
+        painelValor.add(new JLabel("Valor:"));
+        txtValor = new JTextField(10);
+        painelValor.add(txtValor);
+
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        painelBotoes.setBackground(Color.WHITE);
+        JButton btnSacar = new JButton("Sacar");
+        JButton btnDepositar = new JButton("Depositar");
+        JButton btnSaldo = new JButton("Consultar Saldo");
+
+        estilizarBotao(btnSacar);
+        estilizarBotao(btnDepositar);
+        estilizarBotao(btnSaldo);
+
+        painelBotoes.add(btnSacar);
+        painelBotoes.add(btnDepositar);
+        painelBotoes.add(btnSaldo);
+
+        painelOperacoes.add(painelValor, BorderLayout.NORTH);
+        painelOperacoes.add(painelBotoes, BorderLayout.CENTER);
+
         btnSaldo.addActionListener(e -> consultarSaldo());
         btnSacar.addActionListener(e -> sacar());
         btnDepositar.addActionListener(e -> depositar());
+
+        return painelOperacoes;
     }
 
-    // Método para atualizar o campo de saldo com o valor atual
+    private void estilizarBotao(JButton botao) {
+        botao.setFont(new Font("Arial", Font.BOLD, 14));
+        botao.setBackground(new Color(70, 130, 180)); // Azul elegante
+        botao.setForeground(Color.WHITE);
+        botao.setFocusPainted(false);
+        botao.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+    }
+
     private void atualizarSaldo() {
         txtSaldo.setText(String.format("€ %.2f", conta.getSaldo()));
     }
 
-    // Método para consultar o saldo (sem efeito financeiro)
     private void consultarSaldo() {
         mostrarMensagem("Saldo atual: € " + conta.getSaldo(), true);
     }
 
-    // Método para realizar o saque
     private void sacar() {
         try {
             double valor = Double.parseDouble(txtValor.getText());
@@ -113,7 +134,6 @@ public class TelaCaixaEletronico extends JFrame {
         }
     }
 
-    // Método para realizar o depósito
     private void depositar() {
         try {
             double valor = Double.parseDouble(txtValor.getText());
@@ -129,18 +149,16 @@ public class TelaCaixaEletronico extends JFrame {
         }
     }
 
-    // Método para exibir mensagens no painel de mensagens
     private void mostrarMensagem(String mensagem, boolean sucesso) {
         lblMensagem.setText(mensagem);
         if (sucesso) {
-            painelMensagem.setBackground(new Color(200, 255, 200));  // Verde claro
+            painelMensagem.setBackground(new Color(200, 255, 200));
         } else {
-            painelMensagem.setBackground(new Color(255, 200, 200));  // Vermelho claro
+            painelMensagem.setBackground(new Color(255, 200, 200));
         }
     }
 
-    // Método principal para iniciar a aplicação
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(143456,"José", 1000.0)));
+        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(143456, "José", 1000.0)));
     }
 }

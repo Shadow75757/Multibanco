@@ -1,18 +1,13 @@
 package src;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
-import src.DatabaseConnection;
+import javax.swing.*;
 
 public class TelaLogin extends JFrame {
 
     private JTextField txtNumeroConta;
     private JTextField txtNome;
-    private JPasswordField txtPin;
     private JLabel lblMensagem;
     private JPanel painelMensagem;
     private JButton btnLogin;
@@ -26,7 +21,7 @@ public class TelaLogin extends JFrame {
         JPanel painelPrincipal = new JPanel(new BorderLayout(10, 10));
         painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JPanel painelLogin = new JPanel(new GridLayout(3, 2, 5, 10));
+        JPanel painelLogin = new JPanel(new GridLayout(2, 2, 5, 10));
         painelLogin.setBorder(BorderFactory.createTitledBorder("Dados de Acesso"));
 
         painelLogin.add(new JLabel("Número da Conta:"));
@@ -35,9 +30,6 @@ public class TelaLogin extends JFrame {
         painelLogin.add(new JLabel("Nome do Titular:"));
         txtNome = new JTextField(20);
         painelLogin.add(txtNome);
-        painelLogin.add(new JLabel("PIN (4 dígitos):"));
-        txtPin = new JPasswordField(4);
-        painelLogin.add(txtPin);
 
         btnLogin = new JButton("Entrar");
         btnLogin.setFont(new Font("Arial", Font.BOLD, 14));
@@ -63,44 +55,34 @@ public class TelaLogin extends JFrame {
         try {
             String numeroContaStr = txtNumeroConta.getText().trim();
             String nome = txtNome.getText().trim();
-            String pinDigitado = new String(txtPin.getPassword()).trim();
 
-            if (numeroContaStr.isEmpty() || nome.isEmpty() || pinDigitado.isEmpty()) {
+            if (numeroContaStr.isEmpty() || nome.isEmpty()) {
                 mostrarMensagem("Por favor, preencha todos os campos!", false);
                 return;
             }
 
-            // Verifica se o número da conta é válido
-            int numeroConta = Integer.parseInt(numeroContaStr);
+            int numeroConta;
+            try {
+                numeroConta = Integer.parseInt(numeroContaStr);
+            } catch (NumberFormatException e) {
+                mostrarMensagem("Número da conta inválido.", false);
+                return;
+            }
 
-            // Recupera os dados do banco de dados para verificar se a conta já existe
-            if (verificarContaExistente(numeroConta, nome)) {
-                // Conta existente: Verifica o PIN
-                String pinEncriptado = recuperarPinEncriptadoDaBase(numeroConta, nome);
-
-                if (BCrypt.checkpw(pinDigitado, pinEncriptado)) {
-                    // PIN correto, login bem-sucedido
-                    ContaBancaria conta = new ContaBancaria(numeroConta, nome, 10000.0);
-                    this.dispose();
-                    SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(conta));
-                } else {
-                    mostrarMensagem("PIN incorreto! Tente novamente.", false);
-                }
+            if (verificarCredenciais(numeroConta, nome)) {
+                this.dispose();
+                SwingUtilities.invokeLater(() -> new TelaPin(numeroConta, nome).setVisible(true));
             } else {
-                // Conta não existe: Cria nova conta com o PIN encriptado
-                criarNovaConta(numeroConta, nome, pinDigitado);
-                mostrarMensagem("Conta criada com sucesso! Agora faça o login.", true);
+                mostrarMensagem("Dados de login incorretos! Tente novamente.", false);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            mostrarMensagem("Erro ao acessar a base de dados", false);
-        } catch (NumberFormatException ex) {
-            mostrarMensagem("Número da conta inválido.", false);
+            mostrarMensagem("Erro ao acessar a base de dados. Tente novamente mais tarde.", false);
         }
     }
 
-    private boolean verificarContaExistente(int numeroConta, String nome) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM users WHERE numero_conta = ? AND nome = ?";
+    private boolean verificarCredenciais(int numeroConta, String nome) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM contas_bancarias WHERE numero_conta = ? AND titular = ?";
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, numeroConta);
             pst.setString(2, nome);
@@ -112,47 +94,16 @@ public class TelaLogin extends JFrame {
         return false;
     }
 
-    private String recuperarPinEncriptadoDaBase(int numeroConta, String nome) throws SQLException {
-        String pinEncriptado = null;
-        String sql = "SELECT password FROM users WHERE numero_conta = ? AND nome = ?";
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, numeroConta);
-            pst.setString(2, nome);
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                pinEncriptado = rs.getString("password");
-            }
-        }
-        return pinEncriptado;
-    }
-
-    private void criarNovaConta(int numeroConta, String nome, String pin) throws SQLException {
-        String pinEncriptado = BCrypt.hashpw(pin, BCrypt.gensalt());
-        String sql = "INSERT INTO users (numero_conta, nome, password, saldo) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, numeroConta);
-            pst.setString(2, nome);
-            pst.setString(3, pinEncriptado);
-            pst.setDouble(4, 10000.0); // Saldo inicial de 10,000
-            pst.executeUpdate();
-        }
-    }
-
     private void mostrarMensagem(String mensagem, boolean sucesso) {
         lblMensagem.setText(mensagem);
         if (sucesso) {
-            painelMensagem.setBackground(new Color(200, 255, 200)); // Verde claro para sucesso
+            painelMensagem.setBackground(new Color(200, 255, 200));
         } else {
-            painelMensagem.setBackground(new Color(255, 200, 200)); // Vermelho claro para erro
+            painelMensagem.setBackground(new Color(255, 200, 200));
         }
     }
 
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         SwingUtilities.invokeLater(() -> new TelaLogin());
     }
 }
