@@ -72,8 +72,13 @@ public class TelaLogin extends JFrame {
             // Verifica se as credenciais estão corretas
             ContaBancaria contaBancaria = verificarCredenciais(numeroConta, nome);
             if (contaBancaria != null) {
-                this.dispose(); // Fecha a tela de login
-                SwingUtilities.invokeLater(() -> new TelaPin(contaBancaria).setVisible(true));
+                // Verifica se a conta está bloqueada
+                if ("blocked".equals(contaBancaria.getStatus())) {
+                    mostrarMensagem("A sua conta está bloqueada. Contacte o seu banco 800 757 740.", false);
+                } else {
+                    this.dispose(); // Fecha a tela de login
+                    SwingUtilities.invokeLater(() -> new TelaPin(contaBancaria).setVisible(true));
+                }
             } else {
                 mostrarMensagem("Dados de login incorretos! Tente novamente.", false);
             }
@@ -94,7 +99,7 @@ public class TelaLogin extends JFrame {
                 int id = rs.getInt("id");
                 double saldo = rs.getDouble("saldo");
                 int pin = rs.getInt("pin");
-                String status = rs.getString("status");
+                String status = rs.getString("status"); // Obtém o status da conta
                 return new ContaBancaria(id, numeroConta, nome, saldo, pin, status);
             }
         }
