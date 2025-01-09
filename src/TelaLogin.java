@@ -18,16 +18,16 @@ public class TelaLogin extends JFrame {
         setLayout(new BorderLayout());
         setUndecorated(true);
 
-        JPanel painelPrincipal = new JPanel(new BorderLayout(10, 10));
-        painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel painelPrincipal = new JPanel(new BorderLayout(50, 50));
+        painelPrincipal.setBorder(BorderFactory.createEmptyBorder(100, 100, 100, 100));
 
         JPanel painelLogin = new JPanel(new GridLayout(2, 2, 5, 10));
         painelLogin.setBorder(BorderFactory.createTitledBorder("Dados de Acesso"));
 
-        painelLogin.add(new JLabel("Número da Conta:"));
+        painelLogin.add(new JLabel("  Número da Conta:"));
         txtNumeroConta = new JTextField(10);
         painelLogin.add(txtNumeroConta);
-        painelLogin.add(new JLabel("Nome do Titular:"));
+        painelLogin.add(new JLabel("  Nome do Titular:"));
         txtNome = new JTextField(20);
         painelLogin.add(txtNome);
 
@@ -69,9 +69,11 @@ public class TelaLogin extends JFrame {
                 return;
             }
 
-            if (verificarCredenciais(numeroConta, nome)) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> new TelaPin(numeroConta, nome).setVisible(true));
+            // Verifica se as credenciais estão corretas
+            ContaBancaria contaBancaria = verificarCredenciais(numeroConta, nome);
+            if (contaBancaria != null) {
+                this.dispose(); // Fecha a tela de login
+                SwingUtilities.invokeLater(() -> new TelaPin(contaBancaria).setVisible(true));
             } else {
                 mostrarMensagem("Dados de login incorretos! Tente novamente.", false);
             }
@@ -81,17 +83,22 @@ public class TelaLogin extends JFrame {
         }
     }
 
-    private boolean verificarCredenciais(int numeroConta, String nome) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM contas_bancarias WHERE numero_conta = ? AND titular = ?";
+    private ContaBancaria verificarCredenciais(int numeroConta, String nome) throws SQLException {
+        String sql = "SELECT * FROM contas_bancarias WHERE numero_conta = ? AND titular = ?";
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, numeroConta);
             pst.setString(2, nome);
             ResultSet rs = pst.executeQuery();
             if (rs.next()) {
-                return rs.getInt(1) > 0;
+                // Cria o objeto ContaBancaria com os dados recuperados do banco
+                int id = rs.getInt("id");
+                double saldo = rs.getDouble("saldo");
+                int pin = rs.getInt("pin");
+                String status = rs.getString("status");
+                return new ContaBancaria(id, numeroConta, nome, saldo, pin, status);
             }
         }
-        return false;
+        return null; // Retorna null se as credenciais não forem encontradas
     }
 
     private void mostrarMensagem(String mensagem, boolean sucesso) {

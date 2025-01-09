@@ -159,6 +159,6 @@ public class TelaCaixaEletronico extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(143456, "José", 1000.0)));
+        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(41,143456, "José", 10000.0, 1234, "OK")));
     }
 }

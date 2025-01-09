@@ -3,7 +3,6 @@ package src;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.sql.*;
 import javax.swing.*;
 
 public class TelaPin extends JFrame {
@@ -12,20 +11,21 @@ public class TelaPin extends JFrame {
     private JTextField placeholderField;
     private StringBuilder pinBuilder;
 
-    private int numeroConta;
-    private String nome;
+    private ContaBancaria contaBancaria; // Updated to use ContaBancaria
 
-    public TelaPin(int numeroConta, String nome) {
-        this.numeroConta = numeroConta;
-        this.nome = nome;
+    private int tentativasRestantes = 3; // Inicializa as tentativas restantes
+    private JLabel lblTentativas; // Label para exibir as tentativas restantes
+
+    public TelaPin(ContaBancaria contaBancaria) {
+        this.contaBancaria = contaBancaria;
 
         // Verificar se o login foi feito corretamente (conta e nome)
-        if (numeroConta <= 0 || nome == null || nome.trim().isEmpty()) {
+        if (contaBancaria == null || contaBancaria.getNumeroConta() <= 0 || contaBancaria.getTitular() == null || contaBancaria.getTitular().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Por favor, faça login primeiro.", "Erro", JOptionPane.ERROR_MESSAGE);
             // Redireciona para a TelaLogin
             new TelaLogin().setVisible(true);
             dispose(); // Fecha a tela atual
-            return;
+            return; // Impede o restante do código de ser executado
         }
 
         // Make window fullscreen
@@ -67,7 +67,7 @@ public class TelaPin extends JFrame {
             JButton btn = new JButton(tecla);
             btn.setFont(new Font("Arial", Font.BOLD, 12)); // Smaller font size
             btn.setPreferredSize(new Dimension(60, 60)); // Smaller buttons
-            
+
             // Check if the button is the period button
             if (tecla.equals(".")) {
                 btn.addActionListener(e -> {
@@ -76,7 +76,7 @@ public class TelaPin extends JFrame {
             } else {
                 btn.addActionListener(e -> adicionarTecla(tecla));
             }
-            
+
             painelTeclado.add(btn);
         }
 
@@ -113,13 +113,20 @@ public class TelaPin extends JFrame {
         // New panel for showing account number and name
         JPanel painelContaInfo = new JPanel();
         painelContaInfo.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10)); // Center aligned
-        JLabel lblNumeroConta = new JLabel("Conta: " + numeroConta);
-        JLabel lblNomeTitular = new JLabel("Titular: " + nome);
+        JLabel lblNumeroConta = new JLabel("Conta: " + contaBancaria.getNumeroConta());
+        JLabel lblNomeTitular = new JLabel("Titular: " + contaBancaria.getTitular());
         painelContaInfo.add(lblNumeroConta);
         painelContaInfo.add(lblNomeTitular);
 
         // Add the info panel above the PIN panel
         painelPrincipal.add(painelContaInfo, BorderLayout.NORTH);
+
+        // Label for attempts remaining (initially hidden)
+        lblTentativas = new JLabel("Tentativas restantes: " + tentativasRestantes);
+        lblTentativas.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTentativas.setForeground(Color.RED);
+        lblTentativas.setVisible(false); // Initially hidden
+        painelPrincipal.add(lblTentativas, BorderLayout.SOUTH);
 
         add(painelPrincipal, BorderLayout.CENTER);
 
@@ -192,54 +199,37 @@ public class TelaPin extends JFrame {
     }
 
     private void validarPin() {
-        String pin = pinBuilder.toString();
-        
-        // Check if the PIN is 4 digits long
-        if (pin.length() == 0) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira o PIN.", "Erro", JOptionPane.ERROR_MESSAGE);
-        } else if (pin.length() < 4) {
-            JOptionPane.showMessageDialog(this, "O PIN deve conter 4 dígitos.", "Erro", JOptionPane.ERROR_MESSAGE);
-        } else {
-            // Check if the PIN matches the account in the database
-            if (verificarPin(numeroConta, nome, pin)) {
-                JOptionPane.showMessageDialog(this, "PIN Validado com sucesso!");
-                dispose();
-                // Close the current window
-                System.exit(0);  // Exit the program
-            } else {
-                JOptionPane.showMessageDialog(this, "PIN incorreto, tente novamente.", "Erro", JOptionPane.ERROR_MESSAGE);
-                new TelaLogin().setVisible(true);
-                dispose();
-            }
+        if (pinBuilder.length() != 4) {
+            JOptionPane.showMessageDialog(this, "Por favor, insira um PIN de 4 dígitos.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-    }
 
-    private boolean verificarPin(int numeroConta, String nome, String pin) {
-        // Connect to the database and verify the PIN
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String query = "SELECT pin FROM contas_bancarias WHERE numero_conta = ? AND titular = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setInt(1, numeroConta);
-                stmt.setString(2, nome);
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    return pin.equals(rs.getString("pin"));
-                }
+        // Verifica o PIN na conta
+        int pin = Integer.parseInt(pinBuilder.toString()); // Converte o PIN inserido para inteiro
+        if (contaBancaria.getPin() == pin) {  // Comparação entre inteiros
+            JOptionPane.showMessageDialog(this, "PIN válido!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            // Navega para a próxima tela de caixa eletrônico
+            new TelaCaixaEletronico(contaBancaria).setVisible(true);
+            dispose();
+        } else {
+            tentativasRestantes--;
+            if (tentativasRestantes <= 0) {
+                JOptionPane.showMessageDialog(this, "Você excedeu o número máximo de tentativas.", "Erro", JOptionPane.ERROR_MESSAGE);
+                dispose();
+            } else {
+                lblTentativas.setText("Tentativas restantes: " + tentativasRestantes);
+                lblTentativas.setVisible(true);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
     }
 
     private void voltarTelaInicial() {
-        // Redireciona para a TelaInicial
-        JOptionPane.showMessageDialog(this, "Retornando à tela inicial...");
-        dispose(); // Fecha a tela atual
+        // Close current window and return to TelaLogin
         new TelaLogin().setVisible(true);
+        dispose();
     }
 
     public static void main(String[] args) {
-        new TelaPin(12345, "João da Silva"); // Test example with dummy account number and name
+        new TelaPin(new ContaBancaria(41, 143456, "José", 10000.0, 1234, "OK")); // Example account, replace as needed
     }
 }
