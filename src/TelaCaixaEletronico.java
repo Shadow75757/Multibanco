@@ -2,10 +2,11 @@ package src;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 /**
- * Classe principal que implementa a interface gráfica do caixa eletrônico
- * Herda de JFrame para criar uma janela principal
+ * Classe principal que implementa a interface gráfica do caixa eletrônico Herda
+ * de JFrame para criar uma janela principal
  */
 public class TelaCaixaEletronico extends JFrame {
 
@@ -23,8 +24,8 @@ public class TelaCaixaEletronico extends JFrame {
         setUndecorated(true); // Remove a barra de título
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Tela cheia
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
-        setBackground(Color.WHITE);
+        setLayout(new BorderLayout(20, 20)); // Maior espaçamento entre os painéis
+        setBackground(new Color(245, 245, 245)); // Cor de fundo suave
 
         // Painel com informações do cliente
         JPanel painelCliente = criarPainelCliente();
@@ -33,7 +34,8 @@ public class TelaCaixaEletronico extends JFrame {
         // Painel de mensagens
         painelMensagem = new JPanel();
         lblMensagem = new JLabel(" ");
-        lblMensagem.setFont(new Font("Arial", Font.BOLD, 14));
+        lblMensagem.setFont(new Font("Arial", Font.BOLD, 16));
+        painelMensagem.setBackground(new Color(245, 245, 245)); // Cor de fundo leve
         painelMensagem.add(lblMensagem);
 
         // Adiciona os painéis à janela principal
@@ -47,10 +49,9 @@ public class TelaCaixaEletronico extends JFrame {
     }
 
     private JPanel criarPainelCliente() {
-        JPanel painelCliente = new JPanel(new GridLayout(3, 2, 10, 10));
-        painelCliente.setBorder(BorderFactory.createTitledBorder("Informações do Cliente"));
-        painelCliente.setBackground(new Color(245, 245, 245));
-        painelCliente.setOpaque(true);
+        JPanel painelCliente = new JPanel(new GridLayout(3, 2, 20, 20)); // Maior espaçamento entre os campos
+        painelCliente.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2), "Informações do Cliente", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Arial", Font.BOLD, 16), new Color(70, 130, 180)));
+        painelCliente.setBackground(new Color(255, 255, 255)); // Fundo branco para contraste
 
         painelCliente.add(new JLabel("Número da Conta:"));
         painelCliente.add(new JLabel(String.valueOf(conta.getNumeroConta())));
@@ -61,20 +62,22 @@ public class TelaCaixaEletronico extends JFrame {
         txtSaldo = new JTextField();
         txtSaldo.setEditable(false);
         txtSaldo.setHorizontalAlignment(JTextField.RIGHT);
+        txtSaldo.setFont(new Font("Arial", Font.PLAIN, 18));
         painelCliente.add(txtSaldo);
 
         return painelCliente;
     }
 
     private JPanel criarPainelOperacoes() {
-        JPanel painelOperacoes = new JPanel(new BorderLayout(10, 10));
-        painelOperacoes.setBorder(BorderFactory.createTitledBorder("Operações"));
-        painelOperacoes.setBackground(Color.WHITE);
+        JPanel painelOperacoes = new JPanel(new BorderLayout(20, 20));
+        painelOperacoes.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2), "Operações", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Arial", Font.BOLD, 16), new Color(70, 130, 180)));
+        painelOperacoes.setBackground(new Color(255, 255, 255)); // Fundo branco para contraste
 
         JPanel painelValor = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelValor.setBackground(Color.WHITE);
         painelValor.add(new JLabel("Valor:"));
         txtValor = new JTextField(10);
+        txtValor.setFont(new Font("Arial", Font.PLAIN, 16));
         painelValor.add(txtValor);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -107,6 +110,18 @@ public class TelaCaixaEletronico extends JFrame {
         botao.setForeground(Color.WHITE);
         botao.setFocusPainted(false);
         botao.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        botao.setPreferredSize(new Dimension(150, 40)); // Tamanho adequado para os botões
+
+        // Efeito de hover para os botões
+        botao.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                botao.setBackground(new Color(100, 149, 237)); // Azul mais claro ao passar o mouse
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                botao.setBackground(new Color(70, 130, 180)); // Volta ao azul original
+            }
+        });
     }
 
     private void atualizarSaldo() {
@@ -152,13 +167,13 @@ public class TelaCaixaEletronico extends JFrame {
     private void mostrarMensagem(String mensagem, boolean sucesso) {
         lblMensagem.setText(mensagem);
         if (sucesso) {
-            painelMensagem.setBackground(new Color(200, 255, 200));
+            painelMensagem.setBackground(new Color(200, 255, 200)); // Cor verde suave para sucesso
         } else {
-            painelMensagem.setBackground(new Color(255, 200, 200));
+            painelMensagem.setBackground(new Color(255, 200, 200)); // Cor vermelha suave para erro
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(41,143456, "José", 10000.0, 1234, "OK")));
+        SwingUtilities.invokeLater(() -> new TelaCaixaEletronico(new ContaBancaria(41, 143456, "José", 10000.0, 1234, "OK")));
     }
 }
